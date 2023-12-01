@@ -14,6 +14,8 @@ from level.level_reader import PeggleDataReader
 
 import logging
 
+from level.level_writer import PeggleDataWriter
+
 logging.basicConfig(filename="./logs/logs.txt")
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -32,6 +34,7 @@ class TestLevel(TestCase):
 
     def setUp(self) -> None:
         self.dump_directory = "./level_tests/dumps"
+        self.export_directory = "./level_tests/exports"
 
     def test_read_data_pegs_only(self):
         level_directory = "./level_tests/levels/1a) pegs only"
@@ -42,4 +45,22 @@ class TestLevel(TestCase):
                 dump_location = f"{self.dump_directory}/{filename}.json"
                 with open(dump_location, "w") as d:
                     level.dump_json(d)
+
+    def test_write_data_pegs_only(self):
+        level_directory = "./level_tests/levels/1a) pegs only"
+        for f, filename in self.get_levels(level_directory):
+            with self.subTest(filename=filename):
+                data = f.read()
+                f.seek(0)
+                reader = PeggleDataReader(f)
+                level = Level.read_data(reader)
+                dump_location = f"{self.export_directory}/{filename}.dat"
+                with open(dump_location, "wb") as d:
+                    writer = PeggleDataWriter(d)
+                    level.write_data(writer)
+
+                with open(dump_location, "rb") as f2:
+                    data2 = f2.read()
+
+                self.assertEqual(data, data2)
 

@@ -5,10 +5,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/test/level_tests/levels/3) curved bricks" />
-      <excludeFolder url="file://$MODULE_DIR$/test/level_tests/dumps" />
-      <excludeFolder url="file://$MODULE_DIR$/test/logs" />
-      <excludeFolder url="file://$MODULE_DIR$/test/test_results" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

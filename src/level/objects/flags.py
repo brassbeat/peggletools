@@ -31,13 +31,13 @@ class GenericFlag(IntFlag):
     HAS_SOUND = auto()
     BALL_STOP_RESET = auto()
     HAS_LOGIC = auto()
-    FOREGROUND = auto()
+    IS_FOREGROUND = auto()
     HAS_MAX_BOUNCE_VELOCITY = auto()
-    DRAW_SORT = auto()
-    FOREGROUND_2 = auto()
+    IS_DRAW_SORT = auto()
+    IS_FOREGROUND_2 = auto()
     HAS_SUB_ID = auto()
     HAS_FLIPPER_FLAGS = auto()
-    DRAW_FLOAT = auto()
+    IS_DRAW_FLOAT = auto()
     UNKNOWN_29 = auto()
     HAS_SHADOW = auto()
     UNKNOWN_31 = auto()
@@ -66,7 +66,7 @@ class PegInfoFlag(IntFlag):
 
 
 class CircleFlag(IntFlag):
-    UNKNOWN_0 = auto()
+    HAS_NORMAL_PHYSICS = auto()
     HAS_FIXED_COORDINATES = auto()
     UNKNOWN_2 = auto()
     UNKNOWN_3 = auto()

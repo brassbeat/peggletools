@@ -22,8 +22,8 @@ class PeggleDataWriter:
     def write_float(self, data: float):
         self.file.write(struct.pack("<f", data))
 
-    def write_bitfield(self, data: int):
-        self.file.write(data.to_bytes(-(-data.bit_length() // 8), byteorder="little", signed=False))
+    def write_bitfield(self, data: int, size: int):
+        self.file.write(data.to_bytes(size, byteorder="little", signed=False))
 
     def write_string(self, data: str):
         size = len(data)

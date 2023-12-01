@@ -4,10 +4,13 @@ Created on 2023/11/24
 
 @author: brassbeat
 """
+import functools as ft
 import logging
+from collections import deque
 from dataclasses import dataclass
 from typing import Self
 
+from level.protocols import PeggleObjectData
 from .flags import GenericFlag, FlipperFlag
 from .peg_info import PegInfo
 from ..level_reader import PeggleDataReader
@@ -22,7 +25,7 @@ class GenericObject:
     rolliness: float = 1.0
     bounciness: float = 1.0
     peg_data: PegInfo | None = None
-    movement_data: None = None
+    movement_data: PeggleObjectData | None = None
     unknown_4: int | None = None
     has_collision: bool = True
     is_visible: bool = True
@@ -154,7 +157,7 @@ class GenericObject:
         else:
             logic = None
 
-        is_foreground = GenericFlag.FOREGROUND in flag
+        is_foreground = GenericFlag.IS_FOREGROUND in flag
 
         if GenericFlag.HAS_MAX_BOUNCE_VELOCITY in flag:
             _logger.debug("Reading in max bounce velocity...")
@@ -162,8 +165,8 @@ class GenericObject:
         else:
             max_bounce_velocity = None
 
-        is_draw_sort = GenericFlag.DRAW_SORT in flag
-        is_foreground2 = GenericFlag.FOREGROUND_2 in flag
+        is_draw_sort = GenericFlag.IS_DRAW_SORT in flag
+        is_foreground2 = GenericFlag.IS_FOREGROUND_2 in flag
 
         if GenericFlag.HAS_SUB_ID in flag:
             _logger.debug("Reading in sub-ID...")
@@ -176,7 +179,7 @@ class GenericObject:
         else:
             flipper_flags = None
 
-        is_draw_float = GenericFlag.DRAW_FLOAT in flag
+        is_draw_float = GenericFlag.IS_DRAW_FLOAT in flag
         unknown_29 = GenericFlag.UNKNOWN_29 in flag
 
         if file_version >= int("0x50", 16):
@@ -225,7 +228,99 @@ class GenericObject:
         )
 
     def write_data(self, file_version: int, f: PeggleDataWriter) -> None:
-        ...
+
+        write_queue = deque()
+        flag = GenericFlag(0)
+
+        if self.rolliness != 1.0:
+            flag |= GenericFlag.HAS_CUSTOM_ROLLINESS
+            write_queue.append(ft.partial(f.write_float, self.rolliness))
+        if self.bounciness != 1.0:
+            flag |= GenericFlag.HAS_CUSTOM_BOUNCINESS
+            write_queue.append(ft.partial(f.write_float, self.bounciness))
+        if self.unknown_4 is not None:
+            flag |= GenericFlag.UNKNOWN_4
+            write_queue.append(ft.partial(f.write_int, self.unknown_4))
+        if self.has_collision:
+            flag |= GenericFlag.HAS_COLLISION
+        if self.is_visible:
+            flag |= GenericFlag.IS_VISIBLE
+        if self.can_move:
+            flag |= GenericFlag.CAN_MOVE
+        if self.fill_color is not None:
+            flag |= GenericFlag.HAS_FILL_COLOR
+            write_queue.extend(ft.partial(f.write_byte, n) for n in self.fill_color)
+        if self.outline_color is not None:
+            flag |= GenericFlag.HAS_OUTLINE_COLOR
+            write_queue.extend(ft.partial(f.write_byte, n) for n in self.outline_color)
+        if self.image_name is not None:
+            flag |= GenericFlag.HAS_IMAGE_DATA
+            write_queue.append(ft.partial(f.write_string, self.image_name))
+        if self.image_dx is not None:
+            flag |= GenericFlag.HAS_IMAGE_DX
+            write_queue.append(ft.partial(f.write_float, self.image_dx))
+        if self.image_dy is not None:
+            flag |= GenericFlag.HAS_IMAGE_DY
+            write_queue.append(ft.partial(f.write_float, self.image_dy))
+        if self.image_rotation is not None:
+            flag |= GenericFlag.HAS_IMAGE_ROTATION
+            write_queue.append(ft.partial(f.write_float, self.image_rotation))
+        if self.is_background:
+            flag |= GenericFlag.IS_BACKGROUND
+        if self.is_base_object:
+            flag |= GenericFlag.IS_BASE_OBJECT
+        if self.unknown_16 is not None:
+            flag |= GenericFlag.UNKNOWN_16
+            write_queue.append(ft.partial(f.write_int, self.unknown_16))
+        if self.id is not None:
+            flag |= GenericFlag.HAS_ID
+            write_queue.append(ft.partial(f.write_string, self.id))
+        if self.unknown_18 is not None:
+            flag |= GenericFlag.UNKNOWN_18
+            write_queue.append(ft.partial(f.write_int, self.unknown_18))
+        if self.sound is not None:
+            flag |= GenericFlag.HAS_SOUND
+            write_queue.append(ft.partial(f.write_byte, self.sound))
+        if self.is_ball_stop_reset:
+            flag |= GenericFlag.BALL_STOP_RESET
+        if self.logic is not None:
+            flag |= GenericFlag.HAS_LOGIC
+            write_queue.append(ft.partial(f.write_string, self.logic))
+        if self.is_foreground:
+            flag |= GenericFlag.IS_FOREGROUND
+        if self.max_bounce_velocity is not None:
+            flag |= GenericFlag.HAS_MAX_BOUNCE_VELOCITY
+            write_queue.append(ft.partial(f.write_float, self.max_bounce_velocity))
+        if self.is_draw_sort:
+            flag |= GenericFlag.IS_DRAW_SORT
+        if self.is_foreground2:
+            flag |= GenericFlag.IS_FOREGROUND_2
+        if self.sub_id is not None:
+            flag |= GenericFlag.HAS_SUB_ID
+            write_queue.append(ft.partial(f.write_int, self.sub_id))
+        if self.flipper_flags is not None:
+            flag |= GenericFlag.HAS_FLIPPER_FLAGS
+            write_queue.append(ft.partial(f.write_bitfield, self.flipper_flags))
+        if self.is_draw_float:
+            flag |= GenericFlag.IS_DRAW_FLOAT
+        if self.unknown_29:
+            flag |= GenericFlag.UNKNOWN_29
+        if self.has_shadow and file_version >= int("0x50", 16):
+            flag |= GenericFlag.HAS_SHADOW
+        if self.unknown_31:
+            flag |= GenericFlag.UNKNOWN_31
+        if self.peg_data is not None:
+            flag |= GenericFlag.IS_COLLECTIBLE_PEG
+            write_queue.append(ft.partial(self.peg_data.write_data, file_version, f))
+        if self.movement_data is not None:
+            flag |= GenericFlag.HAS_MOVEMENT_DATA
+            write_queue.append(ft.partial(self.movement_data.write_data, file_version, f))
+
+        _logger.debug(f"writing generic flag {flag}")
+
+        f.write_bitfield(flag, 4)
+        for write_action in write_queue:
+            write_action()
 
 
 def main():

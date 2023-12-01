@@ -34,7 +34,11 @@ class Level:
         return cls(file_version, level_objects)
 
     def write_data(self, f: PeggleDataWriter) -> None:
-        ...
+        f.write_int(self.file_version)
+        f.write_byte(1)
+        f.write_int(len(self.level_objects))
+        for obj in self.level_objects:
+            obj.write_data(self.file_version, f)
 
     def dump_json(self, f: TextIO):
         json.dump(

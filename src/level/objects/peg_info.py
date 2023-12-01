@@ -4,7 +4,7 @@ Created on 2023/11/27
 
 @author: brassbeat
 """
-import functools
+import functools as ft
 import logging
 from collections import deque
 from dataclasses import dataclass
@@ -78,30 +78,30 @@ class PegInfo:
         f.write_byte(self.type)
 
         write_queue = deque()
-
         flag = PegInfoFlag(0)
+
         if self.unknown_0:
             flag |= PegInfoFlag.UNKNOWN_0
         if self.can_be_orange:
             flag |= PegInfoFlag.CAN_BE_ORANGE
         if self.unknown_2 is not None:
             flag |= PegInfoFlag.UNKNOWN_2
-            write_queue.append(functools.partial(f.write_int, self.unknown_2))
+            write_queue.append(ft.partial(f.write_int, self.unknown_2))
         if self.can_quick_disappear:
             flag |= PegInfoFlag.CAN_QUICK_DISAPPEAR
         if self.unknown_4 is not None:
             flag |= PegInfoFlag.UNKNOWN_4
-            write_queue.append(functools.partial(f.write_int, self.unknown_4))
+            write_queue.append(ft.partial(f.write_int, self.unknown_4))
         if self.unknown_5 is not None:
             flag |= PegInfoFlag.UNKNOWN_5
-            write_queue.append(functools.partial(f.write_byte, self.unknown_5))
+            write_queue.append(ft.partial(f.write_byte, self.unknown_5))
         if self.unknown_6:
             flag |= PegInfoFlag.UNKNOWN_6
         if self.unknown_7 is not None:
             flag |= PegInfoFlag.UNKNOWN_7
-            write_queue.append(functools.partial(f.write_byte, self.unknown_5))
+            write_queue.append(ft.partial(f.write_byte, self.unknown_7))
 
-        f.write_bitfield(PegInfoFlag.value())
+        f.write_bitfield(flag, 1)
         for write_action in write_queue:
             write_action()
 

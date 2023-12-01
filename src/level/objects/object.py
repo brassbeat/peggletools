@@ -51,7 +51,10 @@ class PeggleObject:
         return cls(generic_data, specific_data)
 
     def write_data(self, file_version: int, f: PeggleDataWriter) -> None:
-        ...
+        f.write_int(1)
+        f.write_int(self.specific_data.TYPE_VALUE)
+        self.generic_data.write_data(file_version, f)
+        self.specific_data.write_data(file_version, f)
 
     def export_json(self, f: TextIO):
         json.dump(dataclasses.asdict(self), f, indent=2)

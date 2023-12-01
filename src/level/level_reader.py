@@ -34,7 +34,9 @@ class PeggleDataReader:
         return data
 
     def read_bitfield(self, size: int) -> int:  # I chose IntFlags to represent these internally, so return an int
-        data = int.from_bytes(self.file.read(size), byteorder="little", signed=False)
+        raw_data = self.file.read(size)
+        _logger.debug(f"Read raw bitfield data {raw_data}")
+        data = int.from_bytes(raw_data, byteorder="little", signed=False)
         _logger.debug(f"Read bitfield data point {data} of size {size}.")
         return data
 
