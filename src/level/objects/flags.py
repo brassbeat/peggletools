@@ -85,3 +85,44 @@ class CircleExtendedFlag(IntFlag):
     UNKNOWN_5 = auto()
     UNKNOWN_6 = auto()
     UNKNOWN_7 = auto()
+
+
+class BrickFlagA(IntFlag):
+    UNKNOWN_0 = auto()
+    UNKNOWN_1 = auto()
+    UNKNOWN_2 = auto()
+    UNKNOWN_3 = auto()
+    HAS_FIXED_COORDINATES = auto()
+    UNKNOWN_5 = auto()
+    UNKNOWN_6 = auto()
+    UNKNOWN_7 = auto()
+
+
+class BrickFlagAExtended(IntFlag):
+    UNKNOWN_8 = auto()
+    UNKNOWN_9 = auto()
+    UNKNOWN_10 = auto()
+    UNKNOWN_11 = auto()
+    UNKNOWN_12 = auto()
+    UNKNOWN_13 = auto()
+    UNKNOWN_14 = auto()
+    UNKNOWN_15 = auto()
+
+
+class BrickFlagB(IntFlag):
+    UNKNOWN_0 = auto()
+    UNKNOWN_1 = auto()
+    UNKNOWN_2 = auto()
+    HAS_CUSTOM_CURVE_POINTS = auto()
+    HAS_SECTOR_ANGLE = auto()
+    HAS_LEFT_SLANT = auto()
+    HAS_RIGHT_SLANT = auto()
+    HAS_CUSTOM_WIDTH = auto()
+    UNKNOWN_8 = auto()
+    UNKNOWN_9 = auto()
+    IS_FLIPPED_TEXTURE = auto()
+    UNKNOWN_11 = auto()
+    UNKNOWN_12 = auto()
+    UNKNOWN_13 = auto()
+    UNKNOWN_14 = auto()
+    UNKNOWN_15 = auto()

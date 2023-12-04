@@ -16,7 +16,9 @@ import logging
 
 from level.level_writer import PeggleDataWriter
 
-logging.basicConfig(filename="./logs/logs.txt")
+_LOGS_PATH = "./logs/logs.txt"
+
+logging.basicConfig(filename=_LOGS_PATH)
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
@@ -35,9 +37,10 @@ class TestLevel(TestCase):
     def setUp(self) -> None:
         self.dump_directory = "./level_tests/dumps"
         self.export_directory = "./level_tests/exports"
+        with open(_LOGS_PATH, "w") as _:
+            pass
 
-    def test_read_data_pegs_only(self):
-        level_directory = "./level_tests/levels/1a) pegs only"
+    def read_and_dump_data(self, level_directory: str):
         for f, filename in self.get_levels(level_directory):
             with self.subTest(filename=filename):
                 reader = PeggleDataReader(f)
@@ -46,8 +49,7 @@ class TestLevel(TestCase):
                 with open(dump_location, "w") as d:
                     level.dump_json(d)
 
-    def test_write_data_pegs_only(self):
-        level_directory = "./level_tests/levels/1a) pegs only"
+    def read_and_export_data(self, level_directory: str):
         for f, filename in self.get_levels(level_directory):
             with self.subTest(filename=filename):
                 data = f.read()
@@ -63,4 +65,32 @@ class TestLevel(TestCase):
                     data2 = f2.read()
 
                 self.assertEqual(data, data2)
+
+    def test_read_data_pegs_only(self):
+        level_directory = "./level_tests/levels/1a) pegs only"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_pegs_only(self):
+        level_directory = "./level_tests/levels/1a) pegs only"
+        self.read_and_export_data(level_directory)
+
+    def test_read_data_straight_bricks(self):
+        level_directory = "./level_tests/levels/2) straight bricks"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_straight_bricks(self):
+        level_directory = "./level_tests/levels/2) straight bricks"
+        self.read_and_export_data(level_directory)
+
+    def test_read_data_curved_bricks(self):
+        level_directory = "./level_tests/levels/3) curved bricks"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_curved_bricks(self):
+        level_directory = "./level_tests/levels/3) curved bricks"
+        self.read_and_export_data(level_directory)
+
+    def test_read_data_fever(self):
+        level_directory = "./level_tests/levels/3b) fever"
+        self.read_and_dump_data(level_directory)
 

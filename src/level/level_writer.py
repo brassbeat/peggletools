@@ -16,6 +16,9 @@ class PeggleDataWriter:
     def write_int(self, data: int):
         self.file.write(struct.pack("<i", data))
 
+    def write_short(self, data: int):
+        self.file.write(struct.pack("<h", data))
+
     def write_byte(self, data: int):
         self.file.write(struct.pack("<b", data))
 

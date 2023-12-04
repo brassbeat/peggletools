@@ -10,6 +10,7 @@ import logging
 from dataclasses import dataclass
 from typing import Self, TextIO
 
+from level.objects.specific.brick import Brick
 from level.objects.specific.circle import Circle
 from level.objects.specific.invalid import InvalidPeggleObject
 from ..level_reader import PeggleDataReader
@@ -25,7 +26,7 @@ _logger.setLevel(logging.DEBUG)
 _OBJECT_TYPES: dict[int, type[SpecificObjectData]] = {
     object_data_type.TYPE_VALUE: object_data_type
     for object_data_type
-    in [Circle]
+    in [Circle, Brick]
 }
 
 
