@@ -14,6 +14,7 @@ from typing import Self, Callable
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
 from level.objects.flags import BrickFlagA, BrickFlagAExtended, BrickFlagB
+from level.objects.point_2d import Point2D
 
 _DEFAULT_CURVE_POINTS = 2
 
@@ -31,41 +32,40 @@ class Brick:
     rotation_angle: float
     unknown_bytes: list[int]
 
-    unknown_a0: bool = False
-    unknown_a1: int | None = None
-    unknown_a2: float | None = None
-    unknown_a3: float | None = None
-    x: float | None = None
-    y: float | None = None
-    unknown_a5: float | None = None
-    unknown_a6: bool = False
-    unknown_a7: bool = False
-    unknown_a8: int | None = None
-    unknown_a9: int | None = None
-    unknown_a10: int | None = None
-    unknown_a11: bool = False
-    unknown_a12: bool = False
-    unknown_a13: bool = False
-    unknown_a14: bool = False
-    unknown_a15: bool = False
+    unknown_a0: bool
+    unknown_a1: int | None
+    unknown_a2: float | None
+    unknown_a3: float | None
+    position: Point2D | None
+    unknown_a5: float | None
+    unknown_a6: bool
+    unknown_a7: bool
+    unknown_a8: int | None
+    unknown_a9: int | None
+    unknown_a10: int | None
+    unknown_a11: bool
+    unknown_a12: bool
+    unknown_a13: bool
+    unknown_a14: bool
+    unknown_a15: bool
 
-    unknown_b0: bool = False
-    unknown_b1: bool = False
-    unknown_b2: int | None = None
-    curve_points: int = _DEFAULT_CURVE_POINTS
-    sector_angle: int | None = None
-    left_slant: float | None = None
-    unknown_b6: float | None = None
-    right_slant: float | None = None
-    width: float = _DEFAULT_WIDTH
-    unknown_b8: float | None = None
-    unknown_b9: float | None = None
-    is_flipped_texture: bool = False
-    unknown_b11: bool = False
-    unknown_b12: bool = False
-    unknown_b13: bool = False
-    unknown_b14: bool = False
-    unknown_b15: bool = False
+    unknown_b0: bool
+    unknown_b1: bool
+    unknown_b2: int | None
+    curve_points: int
+    sector_angle: int | None
+    left_slant: float | None
+    unknown_b6: float | None
+    right_slant: float | None
+    width: float
+    unknown_b8: float | None
+    unknown_b9: float | None
+    is_flipped_texture: bool
+    unknown_b11: bool
+    unknown_b12: bool
+    unknown_b13: bool
+    unknown_b14: bool
+    unknown_b15: bool
 
     TYPE_VALUE: int = dataclasses.field(default=6, init=False, repr=False)
 
@@ -101,9 +101,9 @@ class Brick:
             unknown_a1 = None
         if BrickFlagA.HAS_FIXED_COORDINATES in flag_a:
             _logger.debug("Reading in coordinates...")
-            x, y = f.read_float(), f.read_float()
+            position = Point2D(f.read_float(), f.read_float())
         else:
-            x, y = None, None
+            position = None
 
         unknown_a6 = BrickFlagA.UNKNOWN_6 in flag_a
         unknown_a7 = BrickFlagA.UNKNOWN_7 in flag_a
@@ -112,11 +112,11 @@ class Brick:
             unknown_a8 = None
             unknown_a9 = None
             unknown_a10 = None
-            unknown_a11 = None
-            unknown_a12 = None
-            unknown_a13 = None
-            unknown_a14 = None
-            unknown_a15 = None
+            unknown_a11 = False
+            unknown_a12 = False
+            unknown_a13 = False
+            unknown_a14 = False
+            unknown_a15 = False
         else:
             # noinspection PyUnboundLocalVariable
             if BrickFlagAExtended.UNKNOWN_8 in flag_a_extended:
@@ -214,8 +214,7 @@ class Brick:
                 unknown_a1=unknown_a1,
                 unknown_a2=unknown_a2,
                 unknown_a3=unknown_a3,
-                x=x,
-                y=y,
+                position=position,
                 unknown_a5=unknown_a5,
                 unknown_a6=unknown_a6,
                 unknown_a7=unknown_a7,
@@ -265,10 +264,10 @@ class Brick:
         if self.unknown_a1 is not None:
             flag_a |= BrickFlagA.UNKNOWN_1
             write_queue_a.append(ft.partial(f.write_byte, self.unknown_a1))
-        if self.x is not None:
+        if self.position is not None:
             flag_a |= BrickFlagA.HAS_FIXED_COORDINATES
-            write_queue_a.append(ft.partial(f.write_float, self.x))
-            write_queue_a.append(ft.partial(f.write_float, self.y))
+            write_queue_a.append(ft.partial(f.write_float, self.position.x))
+            write_queue_a.append(ft.partial(f.write_float, self.position.y))
         if self.unknown_a6:
             flag_a |= BrickFlagA.UNKNOWN_6
         if self.unknown_a7:

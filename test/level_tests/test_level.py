@@ -94,3 +94,19 @@ class TestLevel(TestCase):
         level_directory = "./level_tests/levels/3b) fever"
         self.read_and_dump_data(level_directory)
 
+    def test_read_data_rods(self):
+        level_directory = "./level_tests/levels/4) rods"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_rods(self):
+        level_directory = "./level_tests/levels/4) rods"
+        self.read_and_export_data(level_directory)
+
+    def test_read_data_polygons(self):
+        level_directory = "./level_tests/levels/5) polygons"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_polygons(self):
+        level_directory = "./level_tests/levels/5) polygons"
+        self.read_and_export_data(level_directory)
+

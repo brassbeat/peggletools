@@ -16,53 +16,50 @@ from .peg_info import PegInfo
 from ..level_reader import PeggleDataReader
 from ..level_writer import PeggleDataWriter
 
+_SHADOW_FIELD_MIN_VERSION = int("0x50", 16)
+
+_DEFAULT_BOUNCINESS = 1.0
+
+_DEFAULT_ROLLINESS = 1.0
+
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 
 @dataclass
 class GenericObject:
-    rolliness: float = 1.0
-    bounciness: float = 1.0
-    peg_data: PegInfo | None = None
-    movement_data: PeggleObjectData | None = None
-    unknown_4: int | None = None
-    has_collision: bool = True
-    is_visible: bool = True
-    can_move: bool = True
-    fill_color: list[int] | None = None
-    outline_color: list[int] | None = None
-    image_name: str | None = None
-    image_dx: float | None = None
-    image_dy: float | None = None
-    image_rotation: float | None = None
-    is_background: bool = False
-    is_base_object: bool = False
-    unknown_16: int | None = None
-    id: str | None = None
-    unknown_18: int | None = None
-    sound: int | None = None
-    is_ball_stop_reset: bool = False
-    logic: str | None = None
-    is_foreground: bool = False
-    max_bounce_velocity: float | None = None
-    is_draw_sort: bool = False
-    is_foreground2: bool = False
-    sub_id: int | None = None
-    flipper_flags: FlipperFlag | None = None
-    is_draw_float: bool = False
-    unknown_29: bool = False
-    has_shadow: bool = True
-    unknown_31: bool = False
-
-    @property
-    def flag(self) -> GenericFlag:
-        returned_flag = GenericFlag(0)
-
-        if self.rolliness != 1.0:
-            returned_flag |= GenericFlag.HAS_CUSTOM_ROLLINESS
-
-        return returned_flag
+    rolliness: float
+    bounciness: float
+    peg_data: PegInfo | None
+    movement_data: PeggleObjectData | None
+    unknown_4: int | None
+    has_collision: bool
+    is_visible: bool
+    can_move: bool
+    fill_color: list[int] | None
+    outline_color: list[int] | None
+    image_name: str | None
+    image_dx: float | None
+    image_dy: float | None
+    image_rotation: float | None
+    is_background: bool
+    is_base_object: bool
+    unknown_16: int | None
+    id: str | None
+    unknown_18: int | None
+    sound: int | None
+    is_ball_stop_reset: bool
+    logic: str | None
+    is_foreground: bool
+    max_bounce_velocity: float | None
+    is_draw_sort: bool
+    is_foreground2: bool
+    sub_id: int | None
+    flipper_flags: FlipperFlag | None
+    is_draw_float: bool
+    unknown_29: bool
+    has_shadow: bool
+    unknown_31: bool
 
     @classmethod
     def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
@@ -73,12 +70,12 @@ class GenericObject:
             _logger.debug("Reading in rolliness...")
             rolliness = f.read_float()
         else:
-            rolliness = 1.0
+            rolliness = _DEFAULT_ROLLINESS
         if GenericFlag.HAS_CUSTOM_BOUNCINESS in flag:
             _logger.debug("Reading in bounciness...")
             bounciness = f.read_float()
         else:
-            bounciness = 1.0
+            bounciness = _DEFAULT_BOUNCINESS
 
         if GenericFlag.UNKNOWN_4 in flag:
             _logger.debug("Reading in unknown 4...")
@@ -182,15 +179,22 @@ class GenericObject:
         is_draw_float = GenericFlag.IS_DRAW_FLOAT in flag
         unknown_29 = GenericFlag.UNKNOWN_29 in flag
 
-        if file_version >= int("0x50", 16):
+        if file_version >= _SHADOW_FIELD_MIN_VERSION:
             has_shadow = GenericFlag.HAS_SHADOW in flag
         else:
             has_shadow = True
 
         unknown_31 = GenericFlag.UNKNOWN_31 in flag
 
-        peg_data = PegInfo.read_data(file_version, f)
-        movement_data = None  # placeholder!
+        if GenericFlag.IS_COLLECTIBLE_PEG in flag:
+            peg_data = PegInfo.read_data(file_version, f)
+        else:
+            peg_data = None
+
+        if GenericFlag.HAS_MOVEMENT_DATA in flag:
+            movement_data = None  # placeholder!
+        else:
+            movement_data = None
 
         return cls(
                 rolliness=rolliness,
@@ -232,10 +236,10 @@ class GenericObject:
         write_queue = deque()
         flag = GenericFlag(0)
 
-        if self.rolliness != 1.0:
+        if self.rolliness != _DEFAULT_ROLLINESS:
             flag |= GenericFlag.HAS_CUSTOM_ROLLINESS
             write_queue.append(ft.partial(f.write_float, self.rolliness))
-        if self.bounciness != 1.0:
+        if self.bounciness != _DEFAULT_BOUNCINESS:
             flag |= GenericFlag.HAS_CUSTOM_BOUNCINESS
             write_queue.append(ft.partial(f.write_float, self.bounciness))
         if self.unknown_4 is not None:
@@ -305,7 +309,7 @@ class GenericObject:
             flag |= GenericFlag.IS_DRAW_FLOAT
         if self.unknown_29:
             flag |= GenericFlag.UNKNOWN_29
-        if self.has_shadow and file_version >= int("0x50", 16):
+        if self.has_shadow and file_version >= _SHADOW_FIELD_MIN_VERSION:
             flag |= GenericFlag.HAS_SHADOW
         if self.unknown_31:
             flag |= GenericFlag.UNKNOWN_31

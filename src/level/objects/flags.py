@@ -126,3 +126,36 @@ class BrickFlagB(IntFlag):
     UNKNOWN_13 = auto()
     UNKNOWN_14 = auto()
     UNKNOWN_15 = auto()
+
+
+class RodFlag(IntFlag):
+    UNKNOWN_0 = auto()
+    UNKNOWN_1 = auto()
+    UNKNOWN_2 = auto()
+    UNKNOWN_3 = auto()
+    UNKNOWN_4 = auto()
+    UNKNOWN_5 = auto()
+    UNKNOWN_6 = auto()
+    UNKNOWN_7 = auto()
+
+
+class PolygonFlag(IntFlag):
+    UNKNOWN_0 = auto()
+    HAS_NORMAL_DIRECTION = auto()
+    HAS_ROTATION_VALUE = auto()
+    UNKNOWN_3 = auto()
+    HAS_FIXED_COORDINATES = auto()
+    HAS_SCALE = auto()
+    UNKNOWN_6 = auto()
+    UNKNOWN_7 = auto()
+
+
+class PolygonFlagExtended(IntFlag):
+    UNKNOWN_8 = auto()
+    HAS_GROW_TYPE = auto()
+    UNKNOWN_10 = auto()
+    UNKNOWN_11 = auto()
+    UNKNOWN_12 = auto()
+    UNKNOWN_13 = auto()
+    UNKNOWN_14 = auto()
+    UNKNOWN_15 = auto()

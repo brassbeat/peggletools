@@ -14,6 +14,9 @@ from typing import Self
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
 from level.objects.flags import CircleFlag, CircleExtendedFlag
+from level.objects.point_2d import Point2D
+
+_EXTENDED_FLAG_MIN_VERSION = int("0x52", 16)
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -22,16 +25,17 @@ _logger.setLevel(logging.DEBUG)
 @dataclass
 class Circle:
     radius: float
-    has_normal_physics: bool = True
-    x: float | None = None
-    y: float | None = None
-    unknown_2: bool = False
-    unknown_3: bool = False
-    unknown_4: bool = False
-    unknown_5: bool = False
-    unknown_6: bool = False
-    unknown_7: bool = False
-    extended_flag: CircleExtendedFlag | None = None
+    
+    has_normal_physics: bool
+    position: Point2D | None
+    unknown_2: bool
+    unknown_3: bool
+    unknown_4: bool
+    unknown_5: bool
+    unknown_6: bool
+    unknown_7: bool
+    
+    extended_flag: CircleExtendedFlag | None
     TYPE_VALUE: int = dataclasses.field(default=5, init=False, repr=False)
 
     @classmethod
@@ -39,7 +43,7 @@ class Circle:
         _logger.debug("reading in circle flags...")
         flag = CircleFlag(f.read_bitfield(1))
 
-        if file_version >= int("0x52", 16):
+        if file_version >= _EXTENDED_FLAG_MIN_VERSION:
             _logger.debug("reading in extended circle flags...")
             extended_flag = CircleExtendedFlag(f.read_bitfield(1))
         else:
@@ -49,9 +53,9 @@ class Circle:
 
         if CircleFlag.HAS_FIXED_COORDINATES in flag:
             _logger.debug("Reading in coordinates...")
-            x, y = f.read_float(), f.read_float()
+            position = Point2D(f.read_float(), f.read_float())
         else:
-            x, y = None, None
+            position = None
 
         unknown_2 = CircleFlag.UNKNOWN_2 in flag
         unknown_3 = CircleFlag.UNKNOWN_3 in flag
@@ -65,8 +69,7 @@ class Circle:
 
         return cls(
                 has_normal_physics=has_normal_physics,
-                x=x,
-                y=y,
+                position=position,
                 unknown_2=unknown_2,
                 unknown_3=unknown_3,
                 unknown_4=unknown_4,
@@ -83,10 +86,10 @@ class Circle:
 
         if self.has_normal_physics:
             flag |= CircleFlag.HAS_NORMAL_PHYSICS
-        if self.x is not None:
+        if self.position is not None:
             flag |= CircleFlag.HAS_FIXED_COORDINATES
-            write_queue.append(ft.partial(f.write_float, self.x))
-            write_queue.append(ft.partial(f.write_float, self.y))
+            write_queue.append(ft.partial(f.write_float, self.position.x))
+            write_queue.append(ft.partial(f.write_float, self.position.y))
         if self.unknown_2:
             flag |= CircleFlag.UNKNOWN_2
         if self.unknown_3:
@@ -102,7 +105,7 @@ class Circle:
 
         f.write_bitfield(flag, 1)
 
-        if file_version >= int("0x52", 16):
+        if file_version >= _EXTENDED_FLAG_MIN_VERSION:
             f.write_bitfield(self.extended_flag, 1)
 
         for write_action in write_queue:
