@@ -17,7 +17,7 @@ class InvalidPeggleObject:
     TYPE_VALUE: int = dataclasses.field(default=5, init=False, repr=False)
 
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
         pass
 
     def write_data(self, file_version: int, f: PeggleDataWriter) -> None:

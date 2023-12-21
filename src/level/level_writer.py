@@ -30,7 +30,8 @@ class PeggleDataWriter:
 
     def write_string(self, data: str):
         size = len(data)
-        self.file.write(struct.pack(f"<H{size}s", size, data))
+        bytes_data = data.encode(encoding="ascii")
+        self.file.write(struct.pack(f"<H{size}s", size, bytes_data))
 
     def write_raw(self, data: bytes):
         self.file.write(data)

@@ -12,10 +12,10 @@ from level.level_writer import PeggleDataWriter
 
 class PeggleObjectData(Protocol):
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
         ...
 
-    def write_data(self, file_version: int, f: PeggleDataWriter) -> None:
+    def write_data(self, file_version: int, f: PeggleDataWriter, **kwargs) -> None:
         ...
 
 

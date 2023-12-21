@@ -35,7 +35,7 @@ class Rod:
     TYPE_VALUE: int = dataclasses.field(default=2, init=False, repr=False)
 
     @classmethod
-    def read_data(cls, _: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, _: int, f: PeggleDataReader, **kwargs) -> Self:
         flag = RodFlag(f.read_bitfield(1))
 
         point_a = Point2D(f.read_float(), f.read_float())

@@ -39,7 +39,7 @@ class Circle:
     TYPE_VALUE: int = dataclasses.field(default=5, init=False, repr=False)
 
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
         _logger.debug("reading in circle flags...")
         flag = CircleFlag(f.read_bitfield(1))
 

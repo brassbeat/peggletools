@@ -70,7 +70,7 @@ class Brick:
     TYPE_VALUE: int = dataclasses.field(default=6, init=False, repr=False)
 
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
         _logger.debug("reading in flag A...")
         flag_a = BrickFlagA(f.read_bitfield(1))
         if file_version >= _FLAG_A_EXTENDED_MIN_VERSION:

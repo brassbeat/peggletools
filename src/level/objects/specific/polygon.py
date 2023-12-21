@@ -47,7 +47,7 @@ class Polygon:
     TYPE_VALUE: int = dataclasses.field(default=3, init=False, repr=False)
 
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
         flag = PolygonFlag(f.read_bitfield(1))
         if file_version >= _FLAG_EXTENDED_MIN_VERSION:
             flag_extended = PolygonFlagExtended(f.read_bitfield(1))

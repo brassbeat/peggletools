@@ -7,9 +7,11 @@ Created on 2023/11/24
 import functools as ft
 import logging
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Self
 
+from level.objects.movement_data import Movement
 from level.protocols import PeggleObjectData
 from .flags import GenericFlag, FlipperFlag
 from .peg_info import PegInfo
@@ -31,7 +33,7 @@ class GenericObject:
     rolliness: float
     bounciness: float
     peg_data: PegInfo | None
-    movement_data: PeggleObjectData | None
+    movement_data: Movement | None
     unknown_4: int | None
     has_collision: bool
     is_visible: bool
@@ -61,8 +63,17 @@ class GenericObject:
     has_shadow: bool
     unknown_31: bool
 
+    movement_link_id: int | None = None
+
     @classmethod
-    def read_data(cls, file_version: int, f: PeggleDataReader) -> Self:
+    def read_data(
+            cls,
+            file_version: int,
+            f: PeggleDataReader,
+            *,
+            movement_callback: Callable[[int, PeggleDataReader], Movement],
+            **kwargs
+    ) -> Self:
         _logger.debug("reading in generic flags...")
         flag = GenericFlag(f.read_bitfield(4))
 
@@ -83,9 +94,9 @@ class GenericObject:
         else:
             unknown_4 = None
 
-        has_collision = GenericFlag.HAS_COLLISION in flag
+        has_collision = GenericFlag.IS_INTERACTIBLE in flag
         is_visible = GenericFlag.IS_VISIBLE in flag
-        can_move = GenericFlag.CAN_MOVE in flag
+        can_move = GenericFlag.IS_MOVABLE in flag
 
         if GenericFlag.HAS_FILL_COLOR in flag:
             _logger.debug("Reading in fill color...")
@@ -186,15 +197,25 @@ class GenericObject:
 
         unknown_31 = GenericFlag.UNKNOWN_31 in flag
 
-        if GenericFlag.IS_COLLECTIBLE_PEG in flag:
+        if GenericFlag.HAS_PEG_INFO in flag:
+            _logger.debug("Reading in peg info...")
             peg_data = PegInfo.read_data(file_version, f)
         else:
             peg_data = None
 
         if GenericFlag.HAS_MOVEMENT_DATA in flag:
-            movement_data = None  # placeholder!
+            _logger.debug("Reading in movement link id...")
+            main_link_id = f.read_int()
+            if main_link_id == 1:
+                _logger.debug("Reading in movement data...")
+                movement_data = movement_callback(file_version, f)
+                movement_link_id = None
+            else:
+                movement_data = None
+                movement_link_id = main_link_id
         else:
             movement_data = None
+            movement_link_id = None
 
         return cls(
                 rolliness=rolliness,
@@ -229,6 +250,7 @@ class GenericObject:
                 unknown_29=unknown_29,
                 has_shadow=has_shadow,
                 unknown_31=unknown_31,
+                movement_link_id=movement_link_id,
         )
 
     def write_data(self, file_version: int, f: PeggleDataWriter) -> None:
@@ -246,11 +268,11 @@ class GenericObject:
             flag |= GenericFlag.UNKNOWN_4
             write_queue.append(ft.partial(f.write_int, self.unknown_4))
         if self.has_collision:
-            flag |= GenericFlag.HAS_COLLISION
+            flag |= GenericFlag.IS_INTERACTIBLE
         if self.is_visible:
             flag |= GenericFlag.IS_VISIBLE
         if self.can_move:
-            flag |= GenericFlag.CAN_MOVE
+            flag |= GenericFlag.IS_MOVABLE
         if self.fill_color is not None:
             flag |= GenericFlag.HAS_FILL_COLOR
             write_queue.extend(ft.partial(f.write_byte, n) for n in self.fill_color)
@@ -304,7 +326,7 @@ class GenericObject:
             write_queue.append(ft.partial(f.write_int, self.sub_id))
         if self.flipper_flags is not None:
             flag |= GenericFlag.HAS_FLIPPER_FLAGS
-            write_queue.append(ft.partial(f.write_bitfield, self.flipper_flags))
+            write_queue.append(ft.partial(f.write_bitfield, self.flipper_flags, 1))
         if self.is_draw_float:
             flag |= GenericFlag.IS_DRAW_FLOAT
         if self.unknown_29:
@@ -314,17 +336,22 @@ class GenericObject:
         if self.unknown_31:
             flag |= GenericFlag.UNKNOWN_31
         if self.peg_data is not None:
-            flag |= GenericFlag.IS_COLLECTIBLE_PEG
+            flag |= GenericFlag.HAS_PEG_INFO
             write_queue.append(ft.partial(self.peg_data.write_data, file_version, f))
+
         if self.movement_data is not None:
             flag |= GenericFlag.HAS_MOVEMENT_DATA
             write_queue.append(ft.partial(self.movement_data.write_data, file_version, f))
-
-        _logger.debug(f"writing generic flag {flag}")
+        elif self.movement_link_id is not None:
+            flag |= GenericFlag.HAS_MOVEMENT_DATA
+            write_queue.append(ft.partial(f.write_int, self.movement_link_id))
 
         f.write_bitfield(flag, 4)
         for write_action in write_queue:
             write_action()
+
+    def get_data_schematic(self, depth: int):
+        ...
 
 
 def main():
