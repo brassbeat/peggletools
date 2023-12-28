@@ -5,8 +5,6 @@ Created on 2023/11/27
 @author: brassbeat
 """
 import dataclasses
-import functools
-import itertools
 import json
 import logging
 from collections.abc import Iterator, Callable
@@ -19,6 +17,7 @@ from level.objects.specific.circle import Circle
 from level.objects.specific.invalid import InvalidPeggleObject
 from level.objects.specific.polygon import Polygon
 from level.objects.specific.rod import Rod
+from level.objects.specific.teleport import Teleport
 from ..level_reader import PeggleDataReader
 from ..level_writer import PeggleDataWriter
 from .generic import GenericObject
@@ -32,7 +31,7 @@ _logger.setLevel(logging.DEBUG)
 _OBJECT_TYPES: dict[int, type[SpecificObjectData]] = {
     object_data_type.TYPE_VALUE: object_data_type
     for object_data_type
-    in [Circle, Brick, Rod, Polygon]
+    in [Circle, Brick, Rod, Polygon, Teleport]
 }
 
 
@@ -52,15 +51,13 @@ class PeggleObject:
             self.generic_data.movement_link_id = None
         self.generic_data.movement_data = value
 
-    # noinspection PyUnreachableCode
     @property
     def subobject_data(self) -> Self | None:
-        return None
 
-        if not isinstance(self.specific_data, ...):
+        if not isinstance(self.specific_data, Teleport):
             return None
 
-        ...
+        return self.specific_data.subobject
 
     @property
     def complexity(self) -> int:
@@ -70,7 +67,7 @@ class PeggleObject:
             subobjects_with_complexity.append(self.movement_data)
 
         if self.subobject_data is not None:
-            subobjects_with_complexity.append(self.movement_data)
+            subobjects_with_complexity.append(self.subobject_data)
 
         if not subobjects_with_complexity:
             return 0
@@ -90,10 +87,22 @@ class PeggleObject:
             if movement.submovement_ is not None:
                 yield movement.submovement_, self.unlink_submovement
 
+        _logger.debug("Searching for teleport to unlink...")
+        if isinstance(self.specific_data, Teleport):
+            _logger.debug("Found teleport data, searching for exit to unlink...")
+            if self.specific_data.subobject is not None:
+                yield self.specific_data.subobject, self.unlink_teleport_exit
+
     def unlink_submovement(self, link_id: int):
         _logger.debug(f"Unlinking submovement ({link_id=})..")
         self.movement_data.submovement_ = None
         self.movement_data.submovement_link_id = link_id
+
+    def unlink_teleport_exit(self, link_id: int):
+        _logger.debug(f"Unlinking teleport exit ({link_id=})..")
+        self.specific_data: Teleport
+        self.specific_data.subobject = None
+        self.specific_data.subobject_link_id = link_id
 
     @classmethod
     def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:

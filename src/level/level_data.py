@@ -101,9 +101,9 @@ class Level:
                 {
                         "file_version": self.file_version,
                         "level_objects": [
-                                dataclasses.asdict(obj) if obj is not None else None
+                                dataclasses.asdict(obj)
                                 for obj
-                                in self.get_normal_joint_object_list()
+                                in self.level_objects
                         ]
                 },
                 f,

@@ -161,6 +161,17 @@ class PolygonFlagExtended(IntFlag):
     UNKNOWN_15 = auto()
 
 
+class TeleportFlag(IntFlag):
+    UNKNOWN_0 = auto()
+    UNKNOWN_1 = auto()
+    HAS_ENTRY_COORDINATES = auto()
+    UNKNOWN_3 = auto()
+    HAS_EXIT_SUBOBJECT = auto()
+    UNKNOWN_5 = auto()
+    UNKNOWN_6 = auto()
+    UNKNOWN_7 = auto()
+
+
 class MovementFlag(IntFlag):
     HAS_INITIAL_FRAME = auto()
     HAS_RADIUS_1 = auto()

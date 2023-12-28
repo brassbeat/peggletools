@@ -201,3 +201,16 @@ class TestLevel(TestCase):
         # this test needs to be different since we normalize object hierarchy
         level_directory = "./level_tests/levels/7) submovements"
         self.read_and_export_data_twice(level_directory)
+
+    def test_read_data_teleports(self):
+        level_directory = "./level_tests/levels/8) teleports"
+        self.read_and_dump_data(level_directory)
+
+    def test_write_data_teleports(self):
+        # this test needs to be different since we normalize object hierarchy
+        level_directory = "./level_tests/levels/8) teleports"
+        self.read_and_export_data_twice(level_directory)
+
+    def test_read_data_all_deluxe(self):
+        level_directory = "./level_tests/levels/9) all deluxe"
+        self.read_and_dump_data(level_directory)

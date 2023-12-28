@@ -18,6 +18,8 @@ from .peg_info import PegInfo
 from ..level_reader import PeggleDataReader
 from ..level_writer import PeggleDataWriter
 
+_FLAG_EXTENSION_FIRST_VERSION = 5
+
 _SHADOW_FIELD_MIN_VERSION = int("0x50", 16)
 
 _DEFAULT_BOUNCINESS = 1.0
@@ -75,7 +77,8 @@ class GenericObject:
             **kwargs
     ) -> Self:
         _logger.debug("reading in generic flags...")
-        flag = GenericFlag(f.read_bitfield(4))
+        flag_length = 4 if file_version >= _FLAG_EXTENSION_FIRST_VERSION else 3
+        flag = GenericFlag(f.read_bitfield(flag_length))
 
         if GenericFlag.HAS_CUSTOM_ROLLINESS in flag:
             _logger.debug("Reading in rolliness...")
@@ -349,7 +352,8 @@ class GenericObject:
             flag |= GenericFlag.HAS_MOVEMENT_DATA
             write_queue.append(ft.partial(self.movement_data.write_data, file_version, f))
 
-        f.write_bitfield(flag, 4)
+        flag_length = 4 if file_version >= _FLAG_EXTENSION_FIRST_VERSION else 3
+        f.write_bitfield(flag, flag_length)
         for write_action in write_queue:
             write_action()
 
