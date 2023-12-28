@@ -30,8 +30,8 @@ _logger.setLevel(logging.DEBUG)
 
 @dataclass
 class GenericObject:
-    rolliness: float
-    bounciness: float
+    rolliness: float | None
+    bounciness: float | None
     peg_data: PegInfo | None
     movement_data: Movement | None
     unknown_4: int | None
@@ -81,12 +81,12 @@ class GenericObject:
             _logger.debug("Reading in rolliness...")
             rolliness = f.read_float()
         else:
-            rolliness = _DEFAULT_ROLLINESS
+            rolliness = None
         if GenericFlag.HAS_CUSTOM_BOUNCINESS in flag:
             _logger.debug("Reading in bounciness...")
             bounciness = f.read_float()
         else:
-            bounciness = _DEFAULT_BOUNCINESS
+            bounciness = None
 
         if GenericFlag.UNKNOWN_4 in flag:
             _logger.debug("Reading in unknown 4...")
@@ -204,15 +204,18 @@ class GenericObject:
             peg_data = None
 
         if GenericFlag.HAS_MOVEMENT_DATA in flag:
-            _logger.debug("Reading in movement link id...")
-            main_link_id = f.read_int()
-            if main_link_id == 1:
-                _logger.debug("Reading in movement data...")
-                movement_data = movement_callback(file_version, f)
-                movement_link_id = None
-            else:
-                movement_data = None
-                movement_link_id = main_link_id
+            # _logger.debug("Reading in movement link id...")
+            # main_link_id = f.read_int()
+            # if main_link_id == 1:
+            #     _logger.debug("Reading in movement data...")
+            #     movement_data = movement_callback(file_version, f)
+            #     movement_link_id = None
+            # else:
+            #     movement_data = None
+            #     movement_link_id = main_link_id
+            _logger.debug("Reading in movement data...")
+            movement_data = movement_callback(file_version, f)
+            movement_link_id = None
         else:
             movement_data = None
             movement_link_id = None
@@ -258,10 +261,10 @@ class GenericObject:
         write_queue = deque()
         flag = GenericFlag(0)
 
-        if self.rolliness != _DEFAULT_ROLLINESS:
+        if self.rolliness is not None:
             flag |= GenericFlag.HAS_CUSTOM_ROLLINESS
             write_queue.append(ft.partial(f.write_float, self.rolliness))
-        if self.bounciness != _DEFAULT_BOUNCINESS:
+        if self.bounciness is not None:
             flag |= GenericFlag.HAS_CUSTOM_BOUNCINESS
             write_queue.append(ft.partial(f.write_float, self.bounciness))
         if self.unknown_4 is not None:
@@ -339,19 +342,16 @@ class GenericObject:
             flag |= GenericFlag.HAS_PEG_INFO
             write_queue.append(ft.partial(self.peg_data.write_data, file_version, f))
 
-        if self.movement_data is not None:
-            flag |= GenericFlag.HAS_MOVEMENT_DATA
-            write_queue.append(ft.partial(self.movement_data.write_data, file_version, f))
-        elif self.movement_link_id is not None:
+        if self.movement_link_id is not None:
             flag |= GenericFlag.HAS_MOVEMENT_DATA
             write_queue.append(ft.partial(f.write_int, self.movement_link_id))
+        elif self.movement_data is not None:
+            flag |= GenericFlag.HAS_MOVEMENT_DATA
+            write_queue.append(ft.partial(self.movement_data.write_data, file_version, f))
 
         f.write_bitfield(flag, 4)
         for write_action in write_queue:
             write_action()
-
-    def get_data_schematic(self, depth: int):
-        ...
 
 
 def main():

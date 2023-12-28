@@ -36,6 +36,7 @@ class TestLevel(TestCase):
 
     def setUp(self) -> None:
         self.dump_directory = "./level_tests/dumps"
+        self.dump_directory_2 = "./level_tests/dumps2"
         self.export_directory = "./level_tests/exports"
         with open(_LOGS_PATH, "w") as _:
             pass
@@ -85,25 +86,56 @@ class TestLevel(TestCase):
             with self.subTest(filename=filename):
                 reader = PeggleDataReader(f)
                 level = Level.read_data(reader)
-                dump_location = f"{self.export_directory}/{filename}.dat"
-                with open(dump_location, "wb") as d:
-                    writer = PeggleDataWriter(d)
-                    level.write_data(writer)
+                dump_location = f"{self.dump_directory_2}/{filename}.json"
+                dump_location_2 = f"{self.dump_directory_2}/{filename}_2.json"
+                export_location = f"{self.export_directory}/{filename}.dat"
+                export_location_2 = f"{self.export_directory}/{filename}_2.dat"
 
-                with open(dump_location, "rb") as f2:
+                with open(export_location, "wb") as d, open(dump_location, "w") as j:
+                    writer = PeggleDataWriter(d)
+                    level.write_data(writer, j)
+
+                with open(export_location, "rb") as f2:
                     data2 = f2.read()
                     f2.seek(0)
                     reader = PeggleDataReader(f2)
                     level2 = Level.read_data(reader)
 
-                with open(dump_location, "wb") as d:
+                with open(export_location_2, "wb") as d, open(dump_location_2, "w") as j2:
                     writer = PeggleDataWriter(d)
-                    level2.write_data(writer)
+                    level2.write_data(writer, j2)
 
-                with open(dump_location, "rb") as f3:
+                with open(export_location_2, "rb") as f3:
                     data3 = f3.read()
+                    f3.seek(0)
+                    reader = PeggleDataReader(f3)
+                    level3 = Level.read_data(reader)
 
                 self.assertEqual(data2, data3)
+
+    def read_and_dump_data_twice(self, level_directory: str):
+        for f, filename in self.get_levels(level_directory):
+            with self.subTest(filename=filename):
+                reader = PeggleDataReader(f)
+                level = Level.read_data(reader)
+                dump_location = f"{self.dump_directory_2}/{filename}.json"
+                dump_location_2 = f"{self.dump_directory_2}/{filename}_2.json"
+                export_location = f"{self.export_directory}/{filename}.dat"
+                with open(export_location, "wb") as d:
+                    writer = PeggleDataWriter(d)
+                    level.write_data(writer)
+
+                with open(dump_location, "w") as j:
+                    level.dump_json(j)
+
+                with open(export_location, "rb") as f2:
+                    data2 = f2.read()
+                    f2.seek(0)
+                    reader = PeggleDataReader(f2)
+                    level2 = Level.read_data(reader)
+
+                with open(dump_location_2, "w") as j:
+                    level2.dump_json(j)
 
     def test_read_data_pegs_only(self):
         level_directory = "./level_tests/levels/1a) pegs only"
@@ -147,7 +179,6 @@ class TestLevel(TestCase):
 
     def test_write_data_polygons(self):
         level_directory = "./level_tests/levels/5) polygons"
-        self.read_and_export_data(level_directory)
         self.read_and_export_data(level_directory)
 
     def test_read_data_basic_movements(self):

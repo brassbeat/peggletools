@@ -32,6 +32,7 @@ class Level:
         self.file_version = file_version
         self.level_objects: list[PeggleObject] = list(objects) if objects else list()
         self.movement_pool: list[Movement] = []
+        self.joint_object_order: list[PeggleObject | Movement | None] = [None, None, None]
 
     @classmethod
     def read_data(cls, f: PeggleDataReader) -> Self:
@@ -42,9 +43,8 @@ class Level:
         level = cls(file_version)
 
         for _ in range(object_count):
-            level.read_object(file_version, f)
-
-        level.resolve_link_ids()
+            obj = level.read_object(file_version, f)
+            level.add_to_joint_object_order(obj)
 
         return level
 
@@ -80,47 +80,57 @@ class Level:
 
         return level
 
-    def write_data(self, f: PeggleDataWriter) -> None:
+    def write_data(self, f: PeggleDataWriter, json_dump: TextIO | None = None) -> None:
+
         self.sort_level_objects()
+
         self.unlink_nested_objects()
 
         f.write_int(self.file_version)
         f.write_byte(1)
         f.write_int(len(self.level_objects))
         for obj in self.level_objects:
+            f.write_int(1)
             obj.write_data(self.file_version, f)
+
+        if json_dump:
+            self.dump_json(json_dump)
 
     def dump_json(self, f: TextIO):
         json.dump(
                 {
                         "file_version": self.file_version,
-                        "level_objects": [dataclasses.asdict(obj) for obj in self.level_objects]
+                        "level_objects": [
+                                dataclasses.asdict(obj) if obj is not None else None
+                                for obj
+                                in self.get_normal_joint_object_list()
+                        ]
                 },
                 f,
                 indent=2,
         )
 
-    def get_joint_object_list(self) -> list[Movement | PeggleObject | None]:
+    def add_to_joint_object_order(self, obj: PeggleObject):
         """
         Preparation function to dereference link ids of loaded objects.
-        :return: list of level objects L, where L[id] resolves to the correct object for how Peggle stores link ids.
         """
-        joint_list: list[Movement | PeggleObject | None] = [None, None, None]
-        for obj in self.level_objects:
-            joint_list.append(obj)
 
-            movement = obj.movement_data
+        if obj in self.joint_object_order:
+            return
 
-            while movement is not None:
-                _logger.debug(f"Found movement of type {type(movement).__name__}")
-                joint_list.append(movement)
-                movement = movement.submovement_
+        self.joint_object_order.append(obj)
 
-        return joint_list
+        movement = obj.movement_data
+
+        while movement is not None and movement not in self.joint_object_order:
+            self.joint_object_order.append(movement)
+            movement = movement.submovement_
+
+        return self.joint_object_order
 
     def get_normal_joint_object_list(self) -> list[Movement | PeggleObject | None]:
         """
-        Preparation function unlink nested objects and replace them with link id references.
+        Preparation function to unlink nested objects and replace them with link id references.
         :return: list of level objects L, where L[id] resolves to the correct object for how Peggle stores link ids.
         """
         joint_list: list[Movement | PeggleObject | None] = [None, None, None]
@@ -132,27 +142,19 @@ class Level:
 
         return joint_list
 
-    def resolve_link_ids(self) -> None:
-        """
-        Replace implicit references to other objects in the form of numeric link ids with proper object references.
-        """
-        joint_list = self.get_joint_object_list()
-        for obj in self.level_objects:
-            for link_id, setter in obj.get_unresolved_link_ids():
-                attr = joint_list[link_id]
-                setter(attr)
-
     def unlink_nested_objects(self) -> None:
         joint_list = self.get_normal_joint_object_list()
         for obj in self.level_objects:
             _logger.debug("Looking for entries to unlink...")
             for sub_obj, setter in obj.get_linked_entries():
+
                 link_id = joint_list.index(sub_obj)
                 _logger.debug(f"Found link id to set: {link_id}")
                 setter(link_id)
 
     def sort_level_objects(self):
         self.level_objects.sort(key=lambda obj: obj.complexity)
+        _logger.debug(f"complexities of objects after sorting: {[obj.complexity for obj in self.level_objects]}")
 
     def read_object(self, file_version: int, f: PeggleDataReader) -> PeggleObject:
         """
@@ -161,6 +163,14 @@ class Level:
         :param f: Data stream to be read from.
         :return: Object registered.
         """
+        _logger.info("==========Reading in new object==========")
+        _logger.debug(f"Staring on position {f.position}")
+
+        lead_id = f.read_int()
+        if lead_id != 1:
+            _logger.info(f"Found reference to link id {lead_id!r}")
+            return self.joint_object_order[lead_id]
+
         obj = PeggleObject.read_data(
                 file_version,
                 f,
@@ -177,6 +187,13 @@ class Level:
         :param f: Data stream to be read from.
         :return: Movement registered.
         """
+        lead_id = f.read_int()
+        _logger.debug(f"Found lead id of movement: {lead_id!r}")
+        if lead_id != 1:
+            found_movement = self.joint_object_order[lead_id]
+            _logger.debug(f"Found submovement {found_movement!r}")
+            return found_movement
+
         obj = Movement.read_data(
                 file_version,
                 f,
@@ -188,12 +205,7 @@ class Level:
 
 
 def main():
-    with open("test/baseball.dat", "rb") as f:
-        r = PeggleDataReader(f)
-        level_ = Level.read_data(r)
-
-    with open("test/baseball.json", "w") as f:
-        level_.dump_json(f)
+    pass
 
 
 if __name__ == "__main__":

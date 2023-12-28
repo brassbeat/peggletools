@@ -6,6 +6,7 @@ Created on 2023/12/05
 """
 import dataclasses
 import functools as ft
+import itertools
 import logging
 from collections import deque
 from dataclasses import dataclass
@@ -19,6 +20,8 @@ from level.objects.point_2d import Point2D
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
+
+_INDEXER = itertools.count()
 
 
 @dataclass
@@ -150,14 +153,8 @@ class Movement:
         if MovementFlag.HAS_SUBMOVEMENT in flag:
             _logger.debug("Reading in submovement offset...")
             submovement_offset = Point2D(f.read_float(), f.read_float())
-
-            _logger.debug("Reading in submovement link id...")
-            submovement_link_id = f.read_int()
-            if submovement_link_id == 1:
-                submovement = movement_callback(file_version, f)
-                submovement_link_id = None
-            else:
-                submovement = None
+            submovement = movement_callback(file_version, f)
+            submovement_link_id = None
 
         else:
             submovement_offset = None
@@ -267,13 +264,7 @@ class Movement:
         if self.submovement_ is None:
             return 0
 
-        submovement = self.submovement_
-        complexity = 0
-        while submovement is not None:
-            complexity += 1
-            submovement = submovement.submovement_
-
-        return complexity
+        return self.submovement_.complexity + 1
 
 
 def main():

@@ -6,6 +6,7 @@ Created on 2023/11/27
 """
 import dataclasses
 import functools
+import itertools
 import json
 import logging
 from collections.abc import Iterator, Callable
@@ -74,26 +75,7 @@ class PeggleObject:
         if not subobjects_with_complexity:
             return 0
 
-        return max(map(lambda obj: obj.complexity, subobjects_with_complexity))
-
-    # ahhh frick this is too arcane
-    def get_unresolved_link_ids(self) -> Iterator[tuple[int, Callable[[Any], None]]]:
-        """
-        ...
-        :return: Iterator yielding (`id`, `setter`) tuples, where `id` is the link id that needs to be looked up,
-        and `setter` is a setter function for its corresponding attribute.
-        """
-        # this needs to avoid yielding an attribute slot and then rereading it
-        # sorry future brass (not really)
-        if self.generic_data.movement_link_id is not None:
-            yield self.generic_data.movement_link_id, functools.partial(setattr, self, "movement_data")
-        elif self.movement_data is not None:  # grr
-            movement = self.movement_data
-            while movement.submovement_ is not None:
-                movement = movement.submovement_
-
-            if movement.submovement_link_id is not None:
-                yield movement.submovement_link_id, self.link_submovement
+        return 1 + max(map(lambda obj: obj.complexity, subobjects_with_complexity))
 
     def get_linked_entries(self) -> Iterator[tuple[Any, Callable[[int], None]]]:
         """
@@ -102,21 +84,11 @@ class PeggleObject:
         looked up,
         and `setter` is a setter function for its corresponding attribute.
         """
-        _logger.debug("Searching for submovement...")
+        _logger.debug("Searching for submovement to unlink...")
         if (movement := self.movement_data) is not None:
             _logger.debug("Found movement data...")
             if movement.submovement_ is not None:
                 yield movement.submovement_, self.unlink_submovement
-
-    def link_submovement(self, movement: Movement):
-        assert isinstance(movement, Movement)
-
-        parent_movement = self.movement_data
-        while parent_movement.submovement_ is not None:
-            parent_movement = parent_movement.submovement_
-
-        parent_movement.submovement_ = movement
-        parent_movement.submovement_link_id = None
 
     def unlink_submovement(self, link_id: int):
         _logger.debug(f"Unlinking submovement ({link_id=})..")
@@ -125,9 +97,6 @@ class PeggleObject:
 
     @classmethod
     def read_data(cls, file_version: int, f: PeggleDataReader, **kwargs) -> Self:
-        _logger.info("==========Reading in new object==========")
-        _logger.debug(f"Staring on position {f.position}")
-        _ = f.read_int()
         _logger.debug("Reading in object type...")
         object_type = _OBJECT_TYPES.get(f.read_int(), InvalidPeggleObject)
         _logger.debug(f"Found object type: {object_type.__name__}")
@@ -138,7 +107,6 @@ class PeggleObject:
         return cls(generic_data, specific_data)
 
     def write_data(self, file_version: int, f: PeggleDataWriter) -> None:
-        f.write_int(1)
         f.write_int(self.specific_data.TYPE_VALUE)
         self.generic_data.write_data(file_version, f)
         self.specific_data.write_data(file_version, f)
