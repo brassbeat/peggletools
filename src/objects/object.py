@@ -11,18 +11,17 @@ from collections.abc import Iterator, Callable
 from dataclasses import dataclass
 from typing import Self, TextIO, Any
 
-from level.objects.movement_data import Movement
-from level.objects.specific.brick import Brick
-from level.objects.specific.circle import Circle
-from level.objects.specific.invalid import InvalidPeggleObject
-from level.objects.specific.polygon import Polygon
-from level.objects.specific.rod import Rod
-from level.objects.specific.teleport import Teleport
-from ..level_reader import PeggleDataReader
-from ..level_writer import PeggleDataWriter
+from objects.movement_data import Movement
+from objects.specific.brick import Brick
+from objects.specific.circle import Circle
+from objects.specific.invalid import InvalidPeggleObject
+from objects.specific.polygon import Polygon
+from objects.specific.rod import Rod
+from objects.specific.teleport import Teleport
+from level.level_reader import PeggleDataReader
+from level.level_writer import PeggleDataWriter
 from .generic import GenericObject
-from ..protocols import SpecificObjectData
-
+from level.protocols import SpecificObjectData
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

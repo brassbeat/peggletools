@@ -13,8 +13,8 @@ from typing import Self, Callable
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.flags import PolygonFlag, PolygonFlagExtended
-from level.objects.point_2d import Point2D
+from objects.flags import PolygonFlag, PolygonFlagExtended
+from objects.point_2d import Point2D
 
 _FLAG_EXTENDED_MIN_VERSION = int("0x23", 16)
 

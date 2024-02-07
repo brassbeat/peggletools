@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from typing import Self
 
 from .flags import PegInfoFlag
-from ..level_reader import PeggleDataReader
-from ..level_writer import PeggleDataWriter
+from level.level_reader import PeggleDataReader
+from level.level_writer import PeggleDataWriter
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

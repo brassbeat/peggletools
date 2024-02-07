@@ -11,8 +11,8 @@ from typing import Self, TextIO
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.movement_data import Movement
-from level.objects.object import PeggleObject
+from objects.movement_data import Movement
+from objects.object import PeggleObject
 
 import logging
 
@@ -202,6 +202,13 @@ class Level:
         )
         self.movement_pool.append(obj)
         return obj
+
+    def register_object(self, obj: PeggleObject):
+        assert obj not in self.level_objects
+        self.level_objects.append(obj)
+        if obj.movement_data not in self.movement_pool:
+            self.movement_pool.append(obj.movement_data)
+
 
 
 def main():

@@ -4,7 +4,6 @@ Created on 2023/12/05
 
 @author: brassbeat
 """
-import dataclasses
 import functools as ft
 import itertools
 import logging
@@ -14,9 +13,9 @@ from typing import Self, Callable
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.enums import MovementType
-from level.objects.flags import MovementFlag
-from level.objects.point_2d import Point2D
+from objects.enums import MovementType
+from objects.flags import MovementFlag
+from objects.point_2d import Point2D
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

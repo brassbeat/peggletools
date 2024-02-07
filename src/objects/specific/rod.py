@@ -13,8 +13,8 @@ from typing import Self, Callable
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.flags import RodFlag
-from level.objects.point_2d import Point2D
+from objects.flags import RodFlag
+from objects.point_2d import Point2D
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)

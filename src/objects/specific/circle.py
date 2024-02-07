@@ -13,8 +13,8 @@ from typing import Self
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.flags import CircleFlag, CircleExtendedFlag
-from level.objects.point_2d import Point2D
+from objects.flags import CircleFlag, CircleExtendedFlag
+from objects.point_2d import Point2D
 
 _EXTENDED_FLAG_MIN_VERSION = int("0x52", 16)
 

@@ -11,12 +11,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Self
 
-from level.objects.movement_data import Movement
-from level.protocols import PeggleObjectData
+from objects.movement_data import Movement
 from .flags import GenericFlag, FlipperFlag
 from .peg_info import PegInfo
-from ..level_reader import PeggleDataReader
-from ..level_writer import PeggleDataWriter
+from level.level_reader import PeggleDataReader
+from level.level_writer import PeggleDataWriter
 
 _FLAG_EXTENSION_FIRST_VERSION = 5
 

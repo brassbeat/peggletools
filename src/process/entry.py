@@ -10,4 +10,4 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Entry:
     base_address: int
-    offsets: tuple[int]
+    offsets: tuple[int, ...]

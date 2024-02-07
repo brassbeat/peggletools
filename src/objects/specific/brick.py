@@ -13,8 +13,8 @@ from typing import Self, Callable
 
 from level.level_reader import PeggleDataReader
 from level.level_writer import PeggleDataWriter
-from level.objects.flags import BrickFlagA, BrickFlagAExtended, BrickFlagB
-from level.objects.point_2d import Point2D
+from objects.flags import BrickFlagA, BrickFlagAExtended, BrickFlagB
+from objects.point_2d import Point2D
 
 _DEFAULT_CURVE_POINTS = 2
 
